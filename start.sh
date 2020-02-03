@@ -1,6 +1,6 @@
 
 #!/bin/bash
-app="adr.api"
+app="anp.api"
 port=12345
 docker build -t ${app} .
 docker run -it --rm -p ${port}:80 \

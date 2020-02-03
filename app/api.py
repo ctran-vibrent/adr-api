@@ -35,3 +35,13 @@ def open_agents():
 def pop_links():
     past_days = int(request.get_json()['past_days'])
     return json.dumps(get_click_links(past_days))
+
+## Twilio api
+@app.route('/api/fetch_twilio', methods=['POST'])
+def fetch_twilio():
+    past_days = int(request.get_json()['past_days'])
+    return get_twilio_by_days(past_days)
+
+@app.route('/api/store_twilio', methods=['POST'])
+def store_twilio():
+    return json.dumps(persist_twilio(request.get_json()))

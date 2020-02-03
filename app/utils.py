@@ -1,5 +1,7 @@
-from app.database import mySQL_connect
+from app.database import *
 from user_agents import parse as agent_parse
+import datetime
+import json
 
 def parse_agents(rows):
     for r in rows:
@@ -56,3 +58,32 @@ def get_click_links(past_days):
                             else 'Unknown'
         results.append(link)
     return results
+
+def datetime_serializer(o):
+    if isinstance(o, datetime.datetime):
+        return o.__str__()
+
+def get_twilio_by_days(past_days):
+    today = datetime.datetime.now()
+    dt_end = datetime.datetime(today.year, today.month, today.day, 0, 0)
+    dt_start = dt_end - datetime.timedelta(days=past_days)
+    messages = twilio_connect(dt_start, dt_end)
+    return json.dumps([{'twilio_account_sid' : r.account_sid,
+                'sms_message_body' : r.body,
+                'sms_date_sent' : r.date_sent,
+                'direction' : r.direction,
+                'error_code' : r.error_code,
+                'sender_number' : r.from_,
+                'messaging_service_sid' : r.messaging_service_sid,
+                'status' : r.status,
+                'twilio_sms_sid' : r.sid,
+                'recipient_number' : r.to
+                } for r in messages]
+                , default = datetime_serializer)
+
+def persist_twilio(messages):
+    table = 'sms_twilio'
+    columns = messages[0].keys()
+    data = [(val for val in row.values()) for row in messages]
+    mySQL_batch_ingest(table, columns, data)
+    return {'Success': True }
